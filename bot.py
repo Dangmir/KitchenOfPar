@@ -2,6 +2,8 @@ import telebot
 from telebot import types
 import pymongo
 from pprint import pprint
+import re
+
 
 client = pymongo.MongoClient("mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb")
 dbuser = client['tguser']
@@ -209,9 +211,11 @@ def buyall(message):
 def test(message):
     db.tgdb.create_index([('name',pymongo.TEXT)],name='search_index')
 
-    a = db.tgdb.find({'$text':{'$search':"HQD Банан"}})
+    a = db.tgdb.find({'$text':{'$search':"HQD"}})
+    string = 'Одноразовая электронная сигарета HQD Cuvie 280мАч (300 затяжек) (Апельсин)'
     for i in a:
-        print(i['name'])
+        if 'Ананас' in i['name']:
+            print(i['name'])
 @bot.message_handler(content_types=['text'])
 def handler(message):
     if message.text == 'Одноразки':
