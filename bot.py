@@ -52,40 +52,38 @@ def menuone(message):
     key1 = types.KeyboardButton(text='HQD')
     key2 = types.KeyboardButton(text='IZI')
     key3 = types.KeyboardButton(text='Корзина')
-    mainmenu.add(key1, key2,key3)
+    key4 = types.KeyboardButton(text='Назад')
+    mainmenu.add(key1, key2,key3,key4)
     bot.send_message(message.from_user.id, 'Одноразки', reply_markup=mainmenu)
 
 def hqdsearch(message):
     result = db.tgdb.find({"name": {"$regex": 'HQD'}}).limit(10)
     mainmenu = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    key1 = types.KeyboardButton(text='HQD 300 затяжек')
-    key2 = types.KeyboardButton(text='HQD 600 затяжек')
-    key3 = types.KeyboardButton(text='HQD 1200 затяжек')
-    key4 = types.KeyboardButton(text='HQD 2000 затяжек')
-    key5 = types.KeyboardButton(text='HQD 2500 затяжек')
+    key1 = types.KeyboardButton(text='HQD Cuvie 300 затяжек')
+    key2 = types.KeyboardButton(text='HQD Super 600 затяжек')
+    key3 = types.KeyboardButton(text='HQD Cuvie Plus 1200 затяжек')
+    key4 = types.KeyboardButton(text='HQD King 2000 затяжек')
+    key5 = types.KeyboardButton(text='HQD Maxx 2500 затяжек')
     key6 = types.KeyboardButton(text='Корзина')
     key7 = types.KeyboardButton(text='Вернуться')
-    mainmenu.add(key1, key2, key3,key4,key5,key6,key7)
+    key8 = types.KeyboardButton(text='Назад')
+    mainmenu.add(key1, key2, key3,key4,key5,key6,key7,key8)
     bot.send_message(message.from_user.id, 'HQD', reply_markup=mainmenu)
 
 def hqd300(message):
     result = db.tgdb.find({"name": {"$regex": 'HQD Cuvie 280'}}).limit(10)
     for i in result:
         mainmenu = types.InlineKeyboardMarkup()
-        right = types.InlineKeyboardButton(text='>', callback_data='right')
-        left = types.InlineKeyboardButton(text='<', callback_data='left')
         key1 = types.InlineKeyboardButton(text=f'В корзину', callback_data='toBucket')
-        mainmenu.add(left, right, key1 )
+        mainmenu.add(key1 )
         bot.send_message(message.from_user.id,f'ID:{i["id"]}\nНазвание:{i["name"]}\nЦена: {i["price"]} \nОстаток:{i["stock"]}',reply_markup=mainmenu)
 
 def hqd600(message):
     result = db.tgdb.find({"name": {"$regex": 'HQD Super'}}).limit(10)
     for i in result:
         mainmenu = types.InlineKeyboardMarkup()
-        right = types.InlineKeyboardButton(text='>', callback_data='right')
-        left = types.InlineKeyboardButton(text='<', callback_data='left')
         key1 = types.InlineKeyboardButton(text=f'В корзину', callback_data='toBucket')
-        mainmenu.add(left, right, key1)
+        mainmenu.add(key1)
         bot.send_message(message.from_user.id,
                          f'ID:{i["id"]}\nНазвание:{i["name"]}\nЦена: {i["price"]} \nОстаток:{i["stock"]}',
                          reply_markup=mainmenu)
@@ -94,10 +92,8 @@ def hqd1200(message):
     result = db.tgdb.find({"name": {"$regex": 'HQD Cuvie PLUS'}}).limit(10)
     for i in result:
         mainmenu = types.InlineKeyboardMarkup()
-        right = types.InlineKeyboardButton(text='>', callback_data='right')
-        left = types.InlineKeyboardButton(text='<', callback_data='left')
         key1 = types.InlineKeyboardButton(text=f'В корзину', callback_data='toBucket')
-        mainmenu.add(left, right, key1)
+        mainmenu.add(key1)
         bot.send_message(message.from_user.id,
                          f'ID:{i["id"]}\nНазвание:{i["name"]}\nЦена: {i["price"]} \nОстаток:{i["stock"]}',
                          reply_markup=mainmenu)
@@ -106,10 +102,8 @@ def hqd2000(message):
     result = db.tgdb.find({"name": {"$regex": 'HQD King'}}).limit(10)
     for i in result:
         mainmenu = types.InlineKeyboardMarkup()
-        right = types.InlineKeyboardButton(text='>', callback_data='right')
-        left = types.InlineKeyboardButton(text='<', callback_data='left')
         key1 = types.InlineKeyboardButton(text=f'В корзину', callback_data='toBucket')
-        mainmenu.add(left, right, key1)
+        mainmenu.add(key1)
         bot.send_message(message.from_user.id,
                          f'ID:{i["id"]}\nНазвание:{i["name"]}\nЦена: {i["price"]} \nОстаток:{i["stock"]}',
                          reply_markup=mainmenu)
@@ -118,13 +112,56 @@ def hqd2500(message):
     result = db.tgdb.find({"name": {"$regex": 'HQD Maxx'}}).limit(10)
     for i in result:
         mainmenu = types.InlineKeyboardMarkup()
-        right = types.InlineKeyboardButton(text='>', callback_data='right')
-        left = types.InlineKeyboardButton(text='<', callback_data='left')
         key1 = types.InlineKeyboardButton(text=f'В корзину', callback_data='toBucket')
-        mainmenu.add(left, right, key1)
+        mainmenu.add(key1)
         bot.send_message(message.from_user.id,
                          f'ID:{i["id"]}\nНазвание:{i["name"]}\nЦена: {i["price"]} \nОстаток:{i["stock"]}',
                          reply_markup=mainmenu)
+
+def izisearch(message):
+    mainmenu = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    key1 = types.KeyboardButton(text='IZI X3 1200 затяжек')
+    key2 = types.KeyboardButton(text='IZI X8 1500 затяжек')
+    key3 = types.KeyboardButton(text='IZI MAX 1600 затяжек')
+    key6 = types.KeyboardButton(text='Корзина')
+    key7 = types.KeyboardButton(text='Вернуться')
+    key8 = types.KeyboardButton(text='Назад')
+    mainmenu.add(key1, key2, key3,key6, key7, key8)
+    bot.send_message(message.from_user.id, 'IZI', reply_markup=mainmenu)
+
+def izi1200(message):
+    result = db.tgdb.find({"name": {"$regex": 'IZI X3'}}).limit(10)
+    for i in result:
+        mainmenu = types.InlineKeyboardMarkup()
+        key1 = types.InlineKeyboardButton(text=f'В корзину', callback_data='toBucket')
+        mainmenu.add(key1)
+        bot.send_message(message.from_user.id,
+                         f'ID:{i["id"]}\nНазвание:{i["name"]}\nЦена: {i["price"]} \nОстаток:{i["stock"]}',
+                         reply_markup=mainmenu)
+
+def izi1500(message):
+    result = db.tgdb.find({"name": {"$regex": 'IZI X8'}}).limit(10)
+    for i in result:
+        mainmenu = types.InlineKeyboardMarkup()
+        key1 = types.InlineKeyboardButton(text=f'В корзину', callback_data='toBucket')
+        mainmenu.add(key1)
+        bot.send_message(message.from_user.id,
+                         f'ID:{i["id"]}\nНазвание:{i["name"]}\nЦена: {i["price"]} \nОстаток:{i["stock"]}',
+                         reply_markup=mainmenu)
+
+def izi1600(message):
+    result = db.tgdb.find({"name": {"$regex": 'IZI MAX'}}).limit(10)
+    for i in result:
+        mainmenu = types.InlineKeyboardMarkup()
+        key1 = types.InlineKeyboardButton(text=f'В корзину', callback_data='toBucket')
+        mainmenu.add(key1)
+        bot.send_message(message.from_user.id,
+                         f'ID:{i["id"]}\nНазвание:{i["name"]}\nЦена: {i["price"]} \nОстаток:{i["stock"]}',
+                         reply_markup=mainmenu)
+
+
+
+
 
 def backet(message):
     mainmenu = types.InlineKeyboardMarkup()
@@ -167,6 +204,14 @@ def buyall(message):
         print(i)
         bot.send_message(861813649,f'{i[0]["name"]}')
     dbuser.user.update_one({'tgid':message.from_user.id},{'$unset':{'bucket':1}})
+    bot.send_message(message.from_user.id,'Заказ оформлен ждите звонка')
+
+def test(message):
+    db.tgdb.create_index([('name',pymongo.TEXT)],name='search_index')
+
+    a = db.tgdb.find({'$text':{'$search':"HQD Банан"}})
+    for i in a:
+        print(i['name'])
 @bot.message_handler(content_types=['text'])
 def handler(message):
     if message.text == 'Одноразки':
@@ -175,18 +220,30 @@ def handler(message):
         hqdsearch(message)
     if message.text == 'Корзина':
         backet(message)
-    if message.text == 'HQD 300 затяжек':
+    if message.text == 'HQD Cuvie 300 затяжек':
         hqd300(message)
-    if message.text == 'HQD 600 затяжек':
+    if message.text == 'HQD Super 600 затяжек':
         hqd600(message)
-    if message.text == 'HQD 1200 затяжек':
+    if message.text == 'HQD Cuvie Plus 1200 затяжек':
         hqd1200(message)
-    if message.text == 'HQD 2000 затяжек':
+    if message.text == 'HQD King 2000 затяжек':
         hqd2000(message)
-    if message.text == 'HQD 2500 затяжек':
+    if message.text == 'HQD Maxx 2500 затяжек':
         hqd2500(message)
-    if message.text =='Вернуться':
+    if message.text == "IZI X3 1200 затяжек":
+        izi1200(message)
+    if message.text == "IZI X8 1500 затяжек":
+        izi1500(message)
+    if message.text == "IZI MAX 1600 затяжек":
+        izi1600(message)
+    if message.text =='Назад':
+        shop(message)
+    if message.text == 'Вернуться':
         menuone(message)
+    if message.text == "IZI":
+        izisearch(message)
+    if message.text == "Жидскости":
+        test(message)
 
 if __name__ == '__main__':
     while True:
