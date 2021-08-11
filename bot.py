@@ -19,6 +19,7 @@ def start(message):
     print(a,message.from_user.id)
     if a:
         bot.send_message(message.from_user.id,'Вы уже зарегистрированны')
+        shop(message)
     else:
         a = bot.send_message(message.from_user.id,'Здравствуйте, введите ваши данные перед заказом через запятую вот в таком формате:\nAlexey,89877500711')
         bot.register_next_step_handler(a,register)
@@ -34,10 +35,11 @@ def register(message):
 
 @bot.message_handler(commands=['shop'])
 def shop(message):
-    mainmenu = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    mainmenu = types.ReplyKeyboardMarkup(resize_keyboard=True,row_width=2)
     key1 = types.KeyboardButton(text='Одноразки')
-    key2 = types.KeyboardButton(text='Жидскости')
-    mainmenu.add(key1, key2)
+    key2 = types.KeyboardButton(text='Жидкости')
+    key3 = types.KeyboardButton(text='Поиск')
+    mainmenu.add(key1, key2,key3)
     bot.send_message(message.from_user.id, 'Это главное меню!', reply_markup=mainmenu)
 
 
@@ -48,6 +50,8 @@ def ans(c):
         toBucket(c)
     if c.data =='buyall':
         buyall(c)
+    if c.data == 'delete_from_bucket':
+        delete_from_bucket(c)
 #МЕНЮ
 def menuone(message):
     mainmenu = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -162,8 +166,20 @@ def izi1600(message):
                          reply_markup=mainmenu)
 
 
+def delete_from_bucket(message):
+    text = message.message.text
+    id = text.split()[0].split(':')[1]
+    item = dbuser.user.find_one({'tgid': message.from_user.id})
+    itemas = item['bucket']
+    d = []
 
+    dbuser.user.update_one({'tgid':message.from_user.id},{'$pull':{'bucket':{'id':int(id)}}})
+    for i in itemas:
+        d.append(int(i['price']))
+    suma = sum(d)
+    bot.delete_message(message.message.chat.id,message.message.id)
 
+    a = bot.send_message(message.from_user.id,f'Сумма заказа: {suma}')
 
 def backet(message):
     mainmenu = types.InlineKeyboardMarkup()
@@ -174,16 +190,21 @@ def backet(message):
     buy.add(buy1)
     try:
         a = dbuser.user.find_one({'tgid':message.from_user.id})['bucket']
-        bot.send_message(message.from_user.id, 'Корзина')
-        count = 1
-        item = []
-        for i in a:
-            item.append({'id': i[0]['id']})
+        print(len(a))
+        if len(a)!= 0:
+            bot.send_message(message.from_user.id, 'Корзина')
+            count = 1
+            item = []
+            for i in a:
+                item.append(int(i['price']))
 
-            bot.send_message(message.from_user.id,
-                             f'ID:{i[0]["id"]}\nНазвание:{i[0]["name"]}\nЦена: {i[0]["price"]}\nОстаток на складе: {i[0]["stock"]}\nКоличество к покупке:',
-                             reply_markup=mainmenu)
-        bot.send_message(message.from_user.id, 'Заказ', reply_markup=buy)
+                bot.send_message(message.from_user.id,
+                                 f'ID:{i["id"]}\nНазвание:{i["name"]}\nЦена: {i["price"]}\nОстаток на складе: {i["stock"]}\n',
+                                 reply_markup=mainmenu)
+            sumzak = sum(item)
+            bot.send_message(message.from_user.id, f'Заказ\nСумма заказа: {sumzak}', reply_markup=buy)
+        else:
+            bot.send_message(message.from_user.id,'Корзина пуста')
     except:
         bot.send_message(message.from_user.id, "Корзина пуста")
 
@@ -194,7 +215,7 @@ def toBucket(message):
     user = dbuser.user.find_one({'tgid':message.from_user.id})
 
     item = {'name':tovar['name'],'price':tovar['price'],'id':tovar['id'],'stock':tovar['stock']}
-    dbuser.user.update_one({'tgid':message.from_user.id},{'$push':{'bucket':[item]}})
+    dbuser.user.update_one({'tgid':message.from_user.id},{'$push':{'bucket':item}})
     bot.send_message(message.from_user.id,'Добавленно в корзину')
 
 def buyall(message):
@@ -202,22 +223,38 @@ def buyall(message):
     bucket = id['bucket']
     print(bucket)
     bot.send_message(861813649, f'Hello Pidar прими заказ от {id["name"]}\n Номер телефона:{id["phone"]}')
+    item = []
     for i in bucket:
-        print(i)
-        bot.send_message(861813649,f'{i[0]["name"]}')
+        item.append(int(i['price']))
+        bot.send_message(861813649,f'{i["name"]}')
+    sumzak = sum(item)
+    bot.send_message(861813649,f'Сумма заказа: {sumzak}\n-----------------------------')
     dbuser.user.update_one({'tgid':message.from_user.id},{'$unset':{'bucket':1}})
     bot.send_message(message.from_user.id,'Заказ оформлен ждите звонка')
 
-def test(message):
-    db.tgdb.create_index([('name',pymongo.TEXT)],name='search_index')
 
-    a = db.tgdb.find({'$text':{'$search':"HQD"}})
-    string = 'Одноразовая электронная сигарета HQD Cuvie 280мАч (300 затяжек) (Апельсин)'
+
+
+def search(message):
+    a = bot.send_message(message.from_user.id,"Введите ваш запрос")
+    bot.register_next_step_handler(a,search2)
+
+def search2(message):
+    db.tgdb.create_index([('name', pymongo.TEXT)], name='search_index')
+
+    a = db.tgdb.find({'$text': {'$search': message.text}}).limit(10)
     for i in a:
-        if 'Ананас' in i['name']:
-            print(i['name'])
+        bot.send_message(message.from_user.id,i['name'])
+    mainmenu = types.InlineKeyboardMarkup()
+    key1 = types.InlineKeyboardButton(text='<', callback_data='left')
+    key2 = types.InlineKeyboardButton(text='>', callback_data='right')
+    mainmenu.add(key1,key2)
+    bot.send_message(message.from_user.id,"KEK",reply_markup=mainmenu)
+
 @bot.message_handler(content_types=['text'])
 def handler(message):
+    if message.text == 'Поиск':
+        search(message)
     if message.text == 'Одноразки':
         menuone(message)
     if message.text == 'HQD':
@@ -246,8 +283,6 @@ def handler(message):
         menuone(message)
     if message.text == "IZI":
         izisearch(message)
-    if message.text == "Жидскости":
-        test(message)
 
 if __name__ == '__main__':
     while True:
