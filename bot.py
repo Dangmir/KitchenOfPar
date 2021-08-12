@@ -54,6 +54,8 @@ def ans(c):
         delete_from_bucket(c)
     if c.data == 'right':
         right(c)
+    if c.data == 'left':
+        left(c)
 #МЕНЮ
 def menuone(message):
     mainmenu = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -253,24 +255,52 @@ def watch_result_search(message,offset,page):
     count_page = round(count_page/5)
     mainmenu = types.InlineKeyboardMarkup()
     key1 = types.InlineKeyboardButton(text='>',callback_data=f'right')
-    mainmenu.add(key1)
+    key2 = types.InlineKeyboardButton(text='<',callback_data=f'left')
+    mainmenu.add(key1,key2)
     bot.send_message(message.from_user.id,f'Запрос:{message.text}\nКоличество страниц: {count_page}\nТекущая страница:{page}',reply_markup=mainmenu)
 def right(message):
     name = message.message.text.split(':')[1].split('\n')[0]
     offset = int(message.message.text.split(':')[3])
-    contpage = message.message.text.split(':')[2].split('\n')[0].strip()
-    print(contpage)
-    result_limit = db.tgdb.find({'$text': {'$search': name}}).skip(offset*5).limit(5)
 
-    for i in result_limit:
-        bot.send_message(message.from_user.id,i['name'])
-    offset+=1
-    mainmenu = types.InlineKeyboardMarkup()
-    key1 = types.InlineKeyboardButton(text='>', callback_data=f'right')
-    mainmenu.add(key1)
-    bot.send_message(message.from_user.id,
-                     f'Запрос:{name}\nКоличество страниц: {contpage}\nТекущая страница:{offset}',
-                     reply_markup=mainmenu)
+    contpage = int(message.message.text.split(':')[2].split('\n')[0].strip())
+    if offset > contpage:
+        bot.send_message(message.from_user.id,'Конец поиска')
+    else:
+        print(contpage)
+        result_limit = db.tgdb.find({'$text': {'$search': name}}).skip(offset*5).limit(5)
+
+        for i in result_limit:
+            bot.send_message(message.from_user.id,i['name'])
+        offset+=1
+        mainmenu = types.InlineKeyboardMarkup()
+        key1 = types.InlineKeyboardButton(text='>', callback_data=f'right')
+        key2 = types.InlineKeyboardButton(text='<', callback_data=f'left')
+        mainmenu.add(key1, key2)
+        bot.send_message(message.from_user.id,
+                         f'Запрос:{name}\nКоличество страниц: {contpage}\nТекущая страница:{offset}',
+                         reply_markup=mainmenu)
+
+def left(message):
+    name = message.message.text.split(':')[1].split('\n')[0]
+    offset = int(message.message.text.split(':')[3])
+
+    contpage = int(message.message.text.split(':')[2].split('\n')[0].strip())
+    if offset > contpage:
+        bot.send_message(message.from_user.id,'Конец поиска')
+    else:
+        print(contpage)
+        result_limit = db.tgdb.find({'$text': {'$search': name}}).skip((offset-1)*5).limit(5)
+
+        for i in result_limit:
+            bot.send_message(message.from_user.id,i['name'])
+        offset-=1
+        mainmenu = types.InlineKeyboardMarkup()
+        key1 = types.InlineKeyboardButton(text='>', callback_data=f'right')
+        key2 = types.InlineKeyboardButton(text='<', callback_data=f'left')
+        mainmenu.add(key1, key2)
+        bot.send_message(message.from_user.id,
+                         f'Запрос:{name}\nКоличество страниц: {contpage}\nТекущая страница:{offset}',
+                         reply_markup=mainmenu)
 
 
 @bot.message_handler(content_types=['text'])
