@@ -52,6 +52,8 @@ def ans(c):
         buyall(c)
     if c.data == 'delete_from_bucket':
         delete_from_bucket(c)
+    if c.data == 'right':
+        right(c)
 #МЕНЮ
 def menuone(message):
     mainmenu = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -237,19 +239,39 @@ def buyall(message):
 
 def search(message):
     a = bot.send_message(message.from_user.id,"Введите ваш запрос")
-    bot.register_next_step_handler(a,search2)
+    bot.register_next_step_handler(a,watch_result_search,offset=0,page=0)
 
-def search2(message):
+def watch_result_search(message,offset,page):
     db.tgdb.create_index([('name', pymongo.TEXT)], name='search_index')
-
-    a = db.tgdb.find({'$text': {'$search': message.text}}).limit(10)
-    for i in a:
+    result = db.tgdb.find({'$text': {'$search': message.text}})
+    result_limit = db.tgdb.find({'$text': {'$search': message.text}}).skip(offset).limit(5)
+    count_page = 0
+    for i in result:
+        count_page+=1
+    for j in result_limit:
         bot.send_message(message.from_user.id,i['name'])
+    count_page = round(count_page/5)
     mainmenu = types.InlineKeyboardMarkup()
-    key1 = types.InlineKeyboardButton(text='<', callback_data='left')
-    key2 = types.InlineKeyboardButton(text='>', callback_data='right')
-    mainmenu.add(key1,key2)
-    bot.send_message(message.from_user.id,"KEK",reply_markup=mainmenu)
+    key1 = types.InlineKeyboardButton(text='>',callback_data=f'right')
+    mainmenu.add(key1)
+    bot.send_message(message.from_user.id,f'Запрос:{message.text}\nКоличество страниц: {count_page}\nТекущая страница:{page}',reply_markup=mainmenu)
+def right(message):
+    name = message.message.text.split(':')[1].split('\n')[0]
+    offset = int(message.message.text.split(':')[3])
+    contpage = message.message.text.split(':')[2].split('\n')[0].strip()
+    print(contpage)
+    result_limit = db.tgdb.find({'$text': {'$search': name}}).skip(offset*5).limit(5)
+
+    for i in result_limit:
+        bot.send_message(message.from_user.id,i['name'])
+    offset+=1
+    mainmenu = types.InlineKeyboardMarkup()
+    key1 = types.InlineKeyboardButton(text='>', callback_data=f'right')
+    mainmenu.add(key1)
+    bot.send_message(message.from_user.id,
+                     f'Запрос:{name}\nКоличество страниц: {contpage}\nТекущая страница:{offset}',
+                     reply_markup=mainmenu)
+
 
 @bot.message_handler(content_types=['text'])
 def handler(message):
