@@ -3,6 +3,7 @@ from telebot import types
 import pymongo
 from pprint import pprint
 import re
+import openpyxl
 
 
 client = pymongo.MongoClient("mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb")
@@ -196,20 +197,25 @@ def backet(message):
         a = dbuser.user.find_one({'tgid':message.from_user.id})['bucket']
         print(len(a))
         if len(a)!= 0:
+            print(len(a))
             bot.send_message(message.from_user.id, 'Корзина')
             count = 1
             item = []
             for i in a:
                 item.append(int(i['price']))
+                print(i)
 
                 bot.send_message(message.from_user.id,
                                  f'ID:{i["id"]}\nНазвание:{i["name"]}\nЦена: {i["price"]}\nОстаток на складе: {i["stock"]}\n',
                                  reply_markup=mainmenu)
             sumzak = sum(item)
+            print(sumzak)
             bot.send_message(message.from_user.id, f'Заказ\nСумма заказа: {sumzak}', reply_markup=buy)
         else:
+            print("KILLL")
             bot.send_message(message.from_user.id,'Корзина пуста')
-    except:
+    except BaseException as e:
+        print(e)
         bot.send_message(message.from_user.id, "Корзина пуста")
 
 
@@ -217,7 +223,7 @@ def toBucket(message):
     id_tovara = message.message.text.split()[0].split(':')[1]
     tovar = db.tgdb.find_one({'id':int(id_tovara)})
     user = dbuser.user.find_one({'tgid':message.from_user.id})
-
+    print(tovar)
     item = {'name':tovar['name'],'price':tovar['price'],'id':tovar['id'],'stock':tovar['stock']}
     dbuser.user.update_one({'tgid':message.from_user.id},{'$push':{'bucket':item}})
     bot.send_message(message.from_user.id,'Добавленно в корзину')
@@ -247,20 +253,26 @@ def watch_result_search(message,offset,page):
     db.tgdb.create_index([('name', pymongo.TEXT)], name='search_index')
     result = db.tgdb.find({'$text': {'$search': message.text}})
     result_limit = db.tgdb.find({'$text': {'$search': message.text}}).skip(offset).limit(5)
+    mainmenu = types.InlineKeyboardMarkup()
+    key1 = types.InlineKeyboardButton(text=f'В корзину', callback_data='toBucket')
+    mainmenu.add(key1)
     count_page = 0
     for i in result:
         count_page+=1
     for j in result_limit:
-        bot.send_message(message.from_user.id,i['name'])
+        bot.send_message(message.from_user.id,f'ID:{i["id"]}\nНазвание:{i["name"]}\nЦена: {i["price"]}\nОстаток на складе: {i["stock"]}\n',reply_markup=mainmenu)
     count_page = round(count_page/5)
     mainmenu = types.InlineKeyboardMarkup()
     key1 = types.InlineKeyboardButton(text='>',callback_data=f'right')
     key2 = types.InlineKeyboardButton(text='<',callback_data=f'left')
-    mainmenu.add(key1,key2)
+    mainmenu.add(key2,key1)
     bot.send_message(message.from_user.id,f'Запрос:{message.text}\nКоличество страниц: {count_page}\nТекущая страница:{page}',reply_markup=mainmenu)
 def right(message):
     name = message.message.text.split(':')[1].split('\n')[0]
     offset = int(message.message.text.split(':')[3])
+    mainmenu = types.InlineKeyboardMarkup()
+    key1 = types.InlineKeyboardButton(text=f'В корзину', callback_data='toBucket')
+    mainmenu.add(key1)
 
     contpage = int(message.message.text.split(':')[2].split('\n')[0].strip())
     if offset > contpage:
@@ -270,17 +282,20 @@ def right(message):
         result_limit = db.tgdb.find({'$text': {'$search': name}}).skip(offset*5).limit(5)
 
         for i in result_limit:
-            bot.send_message(message.from_user.id,i['name'])
+            bot.send_message(message.from_user.id,f'ID:{i["id"]}\nНазвание:{i["name"]}\nЦена: {i["price"]}\nОстаток на складе: {i["stock"]}\n',reply_markup=mainmenu)
         offset+=1
         mainmenu = types.InlineKeyboardMarkup()
         key1 = types.InlineKeyboardButton(text='>', callback_data=f'right')
         key2 = types.InlineKeyboardButton(text='<', callback_data=f'left')
-        mainmenu.add(key1, key2)
+        mainmenu.add(key2, key1)
         bot.send_message(message.from_user.id,
                          f'Запрос:{name}\nКоличество страниц: {contpage}\nТекущая страница:{offset}',
                          reply_markup=mainmenu)
 
 def left(message):
+    mainmenu = types.InlineKeyboardMarkup()
+    key1 = types.InlineKeyboardButton(text=f'В корзину', callback_data='toBucket')
+    mainmenu.add(key1)
     name = message.message.text.split(':')[1].split('\n')[0]
     offset = int(message.message.text.split(':')[3])
 
@@ -292,15 +307,50 @@ def left(message):
         result_limit = db.tgdb.find({'$text': {'$search': name}}).skip((offset-1)*5).limit(5)
 
         for i in result_limit:
-            bot.send_message(message.from_user.id,i['name'])
+            bot.send_message(message.from_user.id,f'ID:{i["id"]}\nНазвание:{i["name"]}\nЦена: {i["price"]}\nОстаток на складе: {i["stock"]}\n',reply_markup=mainmenu)
         offset-=1
         mainmenu = types.InlineKeyboardMarkup()
         key1 = types.InlineKeyboardButton(text='>', callback_data=f'right')
         key2 = types.InlineKeyboardButton(text='<', callback_data=f'left')
-        mainmenu.add(key1, key2)
+        mainmenu.add(key2, key1)
         bot.send_message(message.from_user.id,
                          f'Запрос:{name}\nКоличество страниц: {contpage}\nТекущая страница:{offset}',
                          reply_markup=mainmenu)
+
+
+@bot.message_handler(content_types=['document'])
+def document(message):
+    print(message.from_user.id)
+    if message.from_user.id == 628229833:
+        f = 0
+        try:
+            fileinfo = bot.get_file(message.document.file_id)
+            download_file = bot.download_file(fileinfo.file_path)
+            with open('3.xlsx','wb') as new_file:
+                new_file.write(download_file)
+            excel_file = openpyxl.load_workbook('3.xlsx')
+            ws = excel_file.active
+
+            name = ws['C']
+            stock = ws['E']
+            price = ws['F']
+
+            for i in range(2, len(name)):
+                a = db.tgdb.find_one({'name':name[i].value})
+                try:
+                    if a['stock'] != stock[i].value:
+                        print(stock[i].value)
+                        db.tgdb.update({'name':name[i].value},{'id':a['id'],'name':name[i].value,'stock':stock[i].value,'price':price[i].value})
+                        f+=1
+                        bot.send_message(message.from_user.id,f'Заменено позиций:{f},Заменено:{name[i].value}')
+                except:
+                    pass
+        except BaseException as e:
+            print(e)
+    else:
+        bot.send_message(message.from_user.id,'Вам это не доступно')
+
+
 
 
 @bot.message_handler(content_types=['text'])
