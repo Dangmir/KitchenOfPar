@@ -13,6 +13,7 @@ db = client['tgdb']
 
 bot = telebot.TeleBot('1840665419:AAH_pw1tKDJt_LkP_-mO2wOMTsVDKAsr4Bg',parse_mode=None)
 
+
 #Регистраиция
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -340,9 +341,9 @@ def document(message):
                 try:
                     if a['stock'] != stock[i].value:
                         print(stock[i].value)
-                        db.tgdb.update({'name':name[i].value},{'id':a['id'],'name':name[i].value,'stock':stock[i].value,'price':price[i].value})
+                        db.tgdb.update_one({'name':name[i].value},{'id':a['id'],'name':name[i].value,'stock':stock[i].value,'price':price[i].value})
                         f+=1
-                        bot.send_message(message.from_user.id,f'Заменено позиций:{f},Заменено:{name[i].value}')
+                        bot.send_message(message.from_user.id,f'Заменено позиций:{f}\n,Заменено:{name[i].value}')
                 except:
                     pass
         except BaseException as e:
