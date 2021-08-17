@@ -56,6 +56,4 @@ def update_db(a):
     except BaseException as e:
         print(e)
 
-
-
 update_db(get_stocks()[-1])

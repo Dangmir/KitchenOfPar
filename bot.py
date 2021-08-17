@@ -5,8 +5,6 @@ from pprint import pprint
 import re
 import openpyxl
 from xls2xlsx import XLS2XLSX
-from test import get_stocks
-
 client = pymongo.MongoClient("mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb")
 dbuser = client['tguser']
 db = client['tgdb']
@@ -318,45 +316,6 @@ def left(message):
         bot.send_message(message.from_user.id,
                          f'Запрос:{name}\nКоличество страниц: {contpage}\nТекущая страница:{offset}',
                          reply_markup=mainmenu)
-
-
-@bot.message_handler(content_types=['document'])
-def document(message):
-    print(message.from_user.id)
-    if message.from_user.id == 628229833:
-        f = 0
-        try:
-            fileinfo = bot.get_file(message.document.file_id)
-            download_file = bot.download_file(fileinfo.file_path)
-            with open('3.xls','wb') as new_file:
-                new_file.write(download_file)
-            x2x = XLS2XLSX("3.xls")
-            x2x.to_xlsx("3.xlsx")
-            excel_file = openpyxl.load_workbook('3.xlsx')
-            ws = excel_file.active
-
-            name = ws['C']
-            stock = ws['E']
-            price = ws['F']
-
-            for i in range(2, len(name)):
-                a = db.tgdb.find_one({'name':name[i].value})
-                try:
-                    if a['stock'] != stock[i].value:
-                        print(stock[i].value)
-                        db.tgdb.update({'name':name[i].value},{'id':a['id'],'name':name[i].value,'stock':stock[i].value,'price':price[i].value})
-                        f+=1
-                        bot.send_message(message.from_user.id,f'Заменено позиций:{f}\n,Заменено:{name[i].value}')
-                except BaseException as e:
-                    print(e)
-                    pass
-            bot.send_message(message.from_user.id,'Обновил')
-        except BaseException as e:
-            print(e)
-    else:
-        bot.send_message(message.from_user.id,'Вам это не доступно')
-
-
 
 
 @bot.message_handler(content_types=['text'])
