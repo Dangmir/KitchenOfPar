@@ -5,15 +5,19 @@ import os
 import pymongo
 from xls2xlsx import XLS2XLSX
 import os
-
+from selenium.webdriver.chrome.options import Options
+options = Options()
+options.add_argument('--headless')
+options.add_argument('--disable-gpu')
 import openpyxl
 
 client = pymongo.MongoClient("mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb")
 tgdb = client['tgdb']
 
-EXE_PATH = r'chromedriver.exe'
+EXE_PATH = r'/root/KitchenOfPar/chromedriver'
+driver = webdriver.Chrome(executable_path=EXE_PATH)
 def get_stocks():
-    driver = webdriver.Chrome(executable_path=EXE_PATH)
+
     driver.get('https://online.moysklad.ru/')
     name = driver.find_element_by_name('j_username').send_keys('kirito@profi-di')
     password = driver.find_element_by_name('j_password').send_keys('ce385701.')
@@ -57,3 +61,4 @@ def update_db(a):
         print(e)
 
 update_db(get_stocks()[-1])
+driver.close()
