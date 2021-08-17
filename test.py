@@ -14,7 +14,7 @@ import openpyxl
 client = pymongo.MongoClient("mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb")
 tgdb = client['tgdb']
 
-EXE_PATH = r'/root/KitchenOfPar/chromedriver.exe'
+EXE_PATH = r'/usr/bin/chromedriver'
 driver = webdriver.Chrome(executable_path=EXE_PATH)
 def get_stocks():
 
